@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Imágenes SKY Red</title>
+    <!-- Script oficial de Telegram Web App (requerido para Mini Apps) -->
+    <script src="https://telegram.org/js/telegram-web-app.js?59"></script>
+    <!-- CSS personalizado integrado -->
+    <style>
+        /* ===== SKY Red imagen  =====
+        Fondo negro | Texto blanco | Título rojo + azul */
+        :root {
+            --bg: #000;
+            --text: #fff;
+            --title1: #ff4d4d;
+            --title2: #00bfff;
+            --accent: #5865f2;
+            --radius: 10px;
+            --shadow: 0 8px 24px rgba(0,0,0,.45);
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0 1rem 3rem;
+            /* Adaptación dinámica al tema de Telegram (opcional, para modo oscuro/claro) */
+            background-color: var(--tg-theme-bg-color, var(--bg));
+            color: var(--tg-theme-text-color, var(--text));
+        }
+        .container {
+            max-width: 840px;
+            margin: 0 auto;
+        }
+        h1 {
+            background: linear-gradient(90deg, var(--title1) 0%, var(--title2) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.2rem;
+            margin-top: 1.2rem;
+            text-align: center;
+        }
+        h2, h3 {
+            color: var(--accent);
+        }
+        textarea, input[type="text"], input[type="number"], select {
+            background: #111 !important;
+            color: var(--text) !important;
+            border: 1px solid #444 !important;
+            border-radius: var(--radius) !important;
+            font-size: 15px !important;
+            padding: 10px 12px !important;
+            width: 100%;
+            resize: vertical;
+        }
+        textarea:focus, input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 3px rgba(88, 101, 242, .35);
+        }
+        button.generate, .btn.generate {
+            background: linear-gradient(90deg, var(--title1) 0%, var(--title2) 100%) !important;
+            color: #000 !important;
+            font-size: 18px !important;
+            font-weight: 700;
+            padding: 12px 28px;
+            border: none;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: opacity .2s;
+            cursor: pointer;
+        }
+        button.generate:hover, .btn.generate:hover {
+            opacity: .85;
+        }
+        input[type="checkbox"] {
+            accent-color: var(--accent);
+            width: 18px;
+            height: 18px;
+        }
+        .infoBox, .warningBox {
+            background: #111;
+            border-left: 4px solid var(--accent);
+            padding: 14px 18px;
+            border-radius: var(--radius);
+            margin: 1rem 0;
+            box-shadow: var(--shadow);
+        }
+        .warningBox {
+            border-left-color: #f1c40f;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background: #444;
+            margin: 2rem 0;
+        }
+        .histItem {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 12px;
+            background: #111;
+            padding: 8px;
+            border-radius: 8px;
+        }
+        .histItem img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .histItem .meta {
+            flex: 1;
+            font-size: 13px;
+            color: #ccc;
+        }
+        .histItem .meta strong {
+            color: var(--text);
+        }
+        .histItem button {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        /* Estilos adicionales para el generador (ej. placeholder de imagen) */
+        .generated-image {
+            max-width: 100%;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generador de Imágenes SKY Red</h1>
+        
+        <!-- Formulario de entrada para el generador -->
+        <div class="infoBox">
+            <h3>Describe tu imagen</h3>
+            <textarea id="prompt" placeholder="Ejemplo: Un cielo rojo al atardecer con montañas azules..."></textarea>
+            <br>
+            <label><input type="checkbox" id="advanced"> Opciones avanzadas</label>
+            <div id="options" style="display: none;">
+                <input type="number" id="width" placeholder="Ancho (ej. 512)" min="256" max="1024">
+                <input type="number" id="height" placeholder="Alto (ej. 512)" min="256" max="1024">
+                <select id="model">
+                    <option value="default">Modelo predeterminado</option>
+                    <option value="sky-red">SKY Red Especial</option>
+                </select>
+            </div>
+        </div>
+        
+        <button class="generate" onclick="generarImagen()">Generar Imagen</button>
+        
+        <!-- Área para mostrar la imagen generada -->
+        <div id="resultado">
+            <img id="imagen-generada" class="generated-image" style="display: none;" alt="Imagen generada">
+        </div>
+        
+        <!-- Historial de generaciones (ejemplo) -->
+        <hr>
+        <h2>Historial</h2>
+        <div id="historial">
+            <div class="histItem">
+                <img src="https://via.placeholder.com/80/000/fff?text=Img1" alt="Imagen 1">
+                <div class="meta">
+                    <strong>Imagen 1</strong><br>Descripción breve del prompt.
+                </div>
+                <button onclick="eliminarItem(this)">Eliminar</button>
+            </div>
+            <!-- Más items se agregan dinámicamente -->
+        </div>
+        
+        <div class="warningBox">
+            <strong>Nota:</strong> Esta es una Mini App de Telegram. Los resultados se envían al bot automáticamente.
+        </div>
+    </div>
+
+    <!-- Script de Telegram y lógica del generador -->
+    <script>
+        // Inicialización de Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.ready();  // Indica que la app está lista
+        tg.expand(); // Expande a pantalla completa
+
+        // Actualiza temas dinámicamente (opcional)
+        tg.onEvent('themeChanged', () => {
+            document.body.style.backgroundColor = tg.themeParams.bg_color || var(--bg);
+            document.body.style.color = tg.themeParams.text_color || var(--text);
+        });
+
+        // Lógica para opciones avanzadas
+        document.getElementById('advanced').addEventListener('change', function() {
+            document.getElementById('options').style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Función principal para generar imagen (aquí integra tu lógica de Perchance o API)
+        function generarImagen() {
+            const prompt = document.getElementById('prompt').value;
+            if (!prompt) {
+                tg.showAlert('¡Ingresa una descripción!');
+                return;
+            }
+
+            // Simulación de generación (reemplaza con tu código real, ej. llamada a API o Perchance JS)
+            tg.showAlert('Generando imagen...'); // Placeholder para loading
+
+            // Ejemplo: Genera una URL placeholder o usa canvas para imagen simple
+            const img = new Image();
+            img.src = `https://via.placeholder.com/512x512/000/fff?text=${encodeURIComponent(prompt.substring(0, 20))}`;
+            img.onload = function() {
+                document.getElementById('imagen-generada').src = img.src;
+                document.getElementById('imagen-generada').style.display = 'block';
+                
+                // Envía el resultado al bot
+                tg.sendData(JSON.stringify({
+                    prompt: prompt,
+                    imagen: img.src,  // O base64 si usas canvas
+                    timestamp: new Date().toISOString()
+                }));
+                
+                // Agrega al historial
+                agregarAlHistorial(img.src, prompt);
+            };
+        }
+
+        // Función para agregar al historial
+        function agregarAlHistorial(src, desc) {
+            const historial = document.getElementById('historial');
+            const nuevoItem = document.createElement('div');
+            nuevoItem.className = 'histItem';
+            nuevoItem.innerHTML = `
+                <img src="${src}" alt="${desc}">
+                <div class="meta">
+                    <strong>Nueva Imagen</strong><br>${desc.substring(0, 50)}...
+                </div>
+                <button onclick="eliminarItem(this)">Eliminar</button>
+            `;
+            historial.insertBefore(nuevoItem, historial.firstChild);
+        }
+
+        // Función para eliminar item del historial
+        function eliminarItem(btn) {
+            btn.parentElement.remove();
+        }
+
+        // Valida initData para seguridad (opcional, en backend)
+        console.log('Mini App lista:', tg.initData);
+    </script>
+</body>
+</html>
